@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloud-batch.fullname" . }}
+  labels:
+    {{- include "cloud-batch.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "cloud-batch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "cloud-batch.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cloud-batch.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+            - name: LOCAL_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SERVER_CONTEXT-PATH
+              value: /
+            - name: SERVER_JWT_SECRET
+              value: "{{ .Values.serverJwtSecret }}"
+            - name: IS_OUT_PUT_FILE
+              value: "false"
+            - name: LOG_LEVEL
+              value: "{{ .Values.logLevel }}"
+            - name: CLOUDPODS_BASE_URL
+              value: "{{ .Values.cloudpodsBaseUrl }}"
+            - name: CLOUDPODS_USERNAME
+              value: "{{ .Values.cloudpodsUsername }}"
+            - name: CLOUDPODS_PASSWORD
+              value: "{{ .Values.cloudpodsPassword }}"
+            - name: CLOUDPODS_DOMAIN
+              value: "{{ .Values.cloudpodsDomain }}"
+            - name: SERVER_LISTEN_ADDR
+              value: "0.0.0.0:{{ .Values.serverListenPort }}"
+            - name: K8SBFS_BFS_PATH
+              value: "{{ .Values.k8sBfsPath }}"
+            - name: K8SBFS_ANSIBLE_CONFIG_PATH
+              value: "{{ .Values.k8sBfsAnsibleConfigPath }}"
+            - name: K8SBFS_K8S_BASE_DIR
+              value: "{{ .Values.k8sBaseDir }}"
+            - name: REDIS_HOST
+              value: "{{ .Values.redis.host }}"
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_DB
+              value: "{{ .Values.redis.db }}"
+            - name: REDIS_PASS
+              value: "{{ .Values.redis.password }}"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.serverListenPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/v1/version
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /api/v1/version
+              port: http
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: localtime
+              readOnly: true
+            - mountPath: /runtime
+              name: runtime
+            - mountPath: /data/offline-k8s-install-package/offline-k8s
+              name: offline-k8s
+            - mountPath: /etc/ansible
+              name: etc-ansible
+            - mountPath: "/root/.ssh"
+              name: root-ssh
+            - mountPath: /root/bfs
+              name: root-bfs
+            - mountPath: /usr/local/bin/helm
+              name: helm
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - hostPath:
+            path: /etc/localtime
+            type: ''
+          name: localtime
+        - hostPath:
+            path: /data/cloud-batch-pod/runtime
+            type: ''
+          name: runtime
+        - hostPath:
+            path: /data/offline-k8s-install-package/offline-k8s
+            type: ''
+          name: offline-k8s
+        - hostPath:
+            path: /etc/ansible
+            type: ''
+          name: etc-ansible
+        - hostPath:
+            path: "/root/.ssh"
+            type: ''
+          name: root-ssh
+        - hostPath:
+            path: /root/bfs
+            type: ''
+          name: root-bfs
+        - hostPath:
+            path: /usr/local/bin/helm
+            type: ''
+          name: helm
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
