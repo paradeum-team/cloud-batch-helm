@@ -12,6 +12,7 @@ cloudpodsUsername: ""
 # base64 encode password
 cloudpodsPassword: ""
 cloudpodsDomain: "default"
+cloudpodsAliyunDefaultImageID: "c0f5ec36-a3a7-43b6-8be7-25636eeed55f"
 serverListenPort: "5140"
 k8sBfsPath: "/root/bfs"
 k8sBfsAnsibleConfigPath: "/etc/ansible"
@@ -26,7 +27,7 @@ image:
   repository: registry.hisun.netwarps.com/cloud-batch/cloud-batch
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.0.9"
+  tag: "v0.1.1"
 
 imagePullSecrets: []
 nameOverride: ""

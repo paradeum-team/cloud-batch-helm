@@ -49,7 +49,7 @@ mkdir ~/cloud-batch
 cd cloud-batch
 ```
 
-下载 helm chart cloud-batch-0.0.9.tgz
+下载 helm chart cloud-batch-0.1.1.tgz
 
 创建 values.yaml
 
@@ -76,7 +76,7 @@ redis:
 image:
   repository: quay.io/ss75710541/cloud-batch
   pullPolicy: Always
-  tag: "v0.0.9"
+  tag: "v0.1.1"
 
 service:
   type: ClusterIP
@@ -121,5 +121,5 @@ tolerations:
 执行安装 cloud-batch
 
 ```
-helm upgrade --install cloud-batch cloud-batch-0.0.9.tgz -f values.yaml -n cloud-batch --create-namespace
+helm upgrade --install cloud-batch cloud-batch-0.1.1.tgz -f values.yaml -n cloud-batch --create-namespace
 ```

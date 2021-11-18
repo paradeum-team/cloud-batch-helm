@@ -66,6 +66,8 @@ spec:
               value: "{{ .Values.redis.db }}"
             - name: REDIS_PASS
               value: "{{ .Values.redis.password }}"
+            - name: CLOUDPODS_ALIYUN_DEFAULT_IMAGE_ID
+              value: "{{ .Values.cloudpodsAliyunDefaultImageID }}"
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
